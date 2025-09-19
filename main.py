@@ -6,12 +6,11 @@ import sys
 path_now =  "~#"
 config = configparser.ConfigParser()
 test_of_read_ini = config.read("configpath.ini")
+if not test_of_read_ini:
+    print("ERROR: Config file not found.")
+    sys.exit(1)  # exit code 1 для ошибки
 
-
-def ls_func(path: list, more_data: str):
-    if not test_of_read_ini:
-        print("ERROR: Config file not found.")
-        sys.exit(0)
+def ls_func(path: list, more_data=None):
     section = ".".join(path) if path else "root"
     if path == "~#":
         section = "root"
@@ -30,9 +29,6 @@ def ls_func(path: list, more_data: str):
 
 
 def test_to_dir(path: list):
-    if not test_of_read_ini:
-        print("ERROR: Config file not found.")
-        sys.exit(0)
     section = ".".join(path) if path else "root"
     if section not in config:
         return None
@@ -45,9 +41,6 @@ def get_path(name: str):
 
 
 while True:
-    if not test_of_read_ini:
-        print("ERROR: Config file not found.")
-        sys.exit(0)
     path_local = os.getcwd()
     # print(f"Testing {path_local}")
     login = config["login data"]["login"]
@@ -69,6 +62,7 @@ while True:
             path_k[0] = "root"
             if not test_to_dir(path_k):
                 print(f"-bash: cd: {args_input[1]}: No such file or directory")
+                sys.exit(1)
             else:
                 path_now = path_not_now
         else:
@@ -77,24 +71,32 @@ while True:
             path_k[0] = "root"
             if not test_to_dir(path_k):
                 print(f"-bash: cd: {args_input[1]}: No such file or directory")
+                sys.exit(1)
             else:
                 path_now = path_not_now
+
 
     if "ls" in args_input:
         if len(args_input) == 1:
             path_k = path_now[:-1].split("/")
+            args = None
         else:
             path_k = path_now[:-1].split("/") + args_input[1].split("/")
+            args = args_input[1]
         path_k[0] = "root"
-        cur_dir = ls_func(path_k, args_input[1])
+
+        cur_dir = ls_func(path_k, args)
         if cur_dir:
             for item in cur_dir:
                 print(item)
         else:
-            sys.exit(0)
+            sys.exit(1)
 
-    if "start" in args_input and len(args_input) == 1:
-        path_start = get_path("phys_path")
+    if "start" in args_input:
+        if len(args_input) == 1:
+            path_start = get_path("phys_path")
+        else:
+            path_start = args_input[1]
         print(path_start)
 
     if "config" in args_input and len(args_input) == 1:
