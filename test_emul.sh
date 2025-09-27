@@ -1,11 +1,6 @@
 #!/bin/bash
+#python3.12 main.py --config other.ini --start /tmp/start.scr
 
 
-python3.13 main.py <<EOF
-ls
-cd test
-ls
-start
-config
-exit
-EOF
+#!/bin/bash
+python3 main.py --config ./configpath.ini --start ./script.scr
