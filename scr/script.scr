@@ -20,3 +20,7 @@ ls
 
 cd
 ls
+
+tac home/notes.txt
+cat home/notes.txt
+find config.ini
