@@ -1,6 +1,0 @@
-section,dirs,files
-root,home,etc,hosts.txt,passwd.txt
-root.home,user1,user2,notes.txt,
-root.home.user1,docs,,
-root.home.user1.docs,,file1.txt,file2.txt
-root.etc,,config.ini,sys.conf

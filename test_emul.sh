@@ -3,4 +3,4 @@
 
 
 #!/bin/bash
-python3 main.py --config ./configpath.ini --start ./script.scr
+python3 main.py --config config_files/complex_config.ini --phys vfs_system/complex.csv

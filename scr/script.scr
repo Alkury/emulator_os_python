@@ -1,0 +1,22 @@
+ls
+vfs-info
+start
+phys
+
+cd home
+ls
+cd user1
+ls
+cd docs
+ls
+
+cd ..
+cd ..
+cd ..
+ls
+
+cd etc
+ls
+
+cd
+ls

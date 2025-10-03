@@ -1,1 +1,0 @@
-# emulator_os_python

@@ -1,15 +1,17 @@
+import io
 import os
 import configparser
 import shlex
 import sys
 import argparse
 import csv
-
+import hashlib
+import base64
 
 path_now =  "~#"
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--config', '-c', default='/Users/alkury/PycharmProjects/emulator_os_python/configpath.ini')
+parser.add_argument('--config', '-c', default='/Users/alkury/PycharmProjects/emulator_os_python/config_files/configpath.ini')
 parser.add_argument('--start', '-s')
 parser.add_argument('--phys', '-p')
 
@@ -30,16 +32,53 @@ phys_path = args.phys or ini_phys
 start_path = args.start or ini_start
 config_path = ini_path
 
-fs_config = {}
+try:
+    if not os.path.exists(ini_phys):
+        print(f"ERROR: VFS file not found at '{ini_phys}'.")
+        sys.exit(1)
+    
+    with open(ini_phys, "r", encoding="utf-8") as f:
+        csv_data = f.read()
+    
+    vfs_hash = hashlib.sha256(csv_data.encode("utf-8")).hexdigest()
+    vfs_name = os.path.basename(ini_phys)
+    
+    fs_config = {}
+    try:
+        reader = csv.DictReader(io.StringIO(csv_data))
+        for row_num, row in enumerate(reader, start=2):
+            if not row.get("section"):
+                print(f"ERROR: Invalid VFS format - missing 'section' field in row {row_num}")
+                sys.exit(1)
+            
+            section = row["section"].strip()
+            dirs = [d.strip() for d in row.get("dirs", "").split(",") if d.strip()]
+            files = [f.strip() for f in row.get("files", "").split(",") if f.strip()]
+            # base64 делаем
+            content_data = {}
+            if "content" in row and row["content"]:
+                content_list = [c.strip() for c in row["content"].split(",") if c.strip()]
+                for i, file_name in enumerate(files):
+                    if i < len(content_list):
+                        try:
+                            decoded_content = base64.b64decode(content_list[i])
+                            content_data[file_name] = content_list[i]
+                        except Exception as e:
+                            print(f"WARNING: Invalid base64 data for file '{file_name}' in section '{section}': {e}")
+                            content_data[file_name] = ""
+            
+            fs_config[section] = {"dirs": dirs, "files": files, "content": content_data}
+    
+    except csv.Error as e:
+        print(f"ERROR: Invalid CSV format in VFS file: {e}")
+        sys.exit(1)
 
-with open(ini_phys, newline="", encoding="utf-8") as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        section = row["section"].strip()
-        dirs = [d.strip() for d in row.get("dirs", "").split(",") if d.strip()]
-        files = [f.strip() for f in row.get("files", "").split(",") if f.strip()]
-        fs_config[section] = {"dirs": dirs, "files": files}
-
+except IOError as e:
+    print(f"ERROR: Cannot read VFS file '{ini_phys}': {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"ERROR: Unexpected error loading VFS: {e}")
+    sys.exit(1)
 
 def ls_func(path: list, more_data=None):
     section = ".".join(path) if path else "root"
@@ -65,10 +104,11 @@ def get_path(name: str):
 
 def process_functions(args_input: list):
     global path_now
-    if args_input[0] == "exit":
+    if not args_input:
+        pass
+    elif args_input[0] == "exit":
         if len(args_input) == 1:
             sys.exit(0)
-
     elif "cd" in args_input:
         if len(args_input) == 2:
             if args_input[1] == "..":
@@ -123,7 +163,9 @@ def process_functions(args_input: list):
     elif "phys" in args_input:
         if len(args_input) == 1:
             print(phys_path)
-
+    elif args_input[0] == "vfs-info":
+        print(f"VFS name: {vfs_name}")
+        print(f"SHA-256: {vfs_hash}")
     else:
         print(f"{args_input[0]}: command not found")
         sys.exit(1)
@@ -132,6 +174,9 @@ def process_functions(args_input: list):
 def run_script(script_path: str):
     if not os.path.exists(script_path):
         print(f"ERROR: Startup script '{script_path}' not found.")
+        sys.exit(1)
+    if script_path.endswith(".csv"):
+        print(f"ERROR: Startup script '{script_path}' looks like CSV, not a shell script.")
         sys.exit(1)
 
     with open(script_path, "r", encoding="utf-8") as f:
