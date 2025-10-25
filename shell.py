@@ -1,5 +1,8 @@
 # shell.py
+import calendar
 import sys
+from datetime import datetime
+
 from vfs_utils import *
 
 class Shell:
@@ -52,7 +55,7 @@ class Shell:
                 path_k[0] = "root"
                 if not test_to_dir(path_k):
                     print(f"-bash: cd: {args_input[0]}: No such file or directory")
-                    sys.exit(1)
+
                 else:
                     self.path_now = path_not_now
             else:
@@ -61,14 +64,14 @@ class Shell:
                 path_k[0] = "root"
                 if not test_to_dir(path_k):
                     print(f"-bash: cd: {args_input[0]}: No such file or directory")
-                    sys.exit(1)
+
                 else:
                     self.path_now = path_not_now
         elif len(args_input) == 0:
             self.path_now = "~#"
         else:
             print(f"-bash: cd: too many arguments")
-            sys.exit(1)
+
 
     def cmd_ls(self, args_input):
         if len(args_input) == 0:
@@ -88,48 +91,22 @@ class Shell:
                 if len(paths) > 1 and idx < len(paths) - 1:
                     print()
 
-    def cmd_cat(self, args_input):
-        if len(args_input) < 1:
-            print("cat: missing file operand")
-            return
+    def cmd_cal(self, args_input):
+        now = datetime.now()
+        cal = calendar.TextCalendar(firstweekday=0)
 
-        filepath = args_input[0].strip()
-
-        if filepath.startswith("/"):
-            path_parts = ["root"] + [p for p in filepath.strip("/").split("/") if p]
+        if len(args_input) == 0:
+            print(cal.formatmonth(now.year, now.month))
+        elif len(args_input) == 1:
+            year = int(args_input[0])
+            print(cal.formatyear(year))
+        elif len(args_input) == 2:
+            month = int(args_input[0])
+            year = int(args_input[1])
+            print(cal.formatmonth(year, month))
         else:
-            current_path = self.path_now[:-1].split("/")
-            current_path[0] = "root"
-            path_parts = current_path + [p for p in filepath.split("/") if p]
+            print("cal: error")
 
-        filename = path_parts[-1]
-        dir_parts = path_parts[:-1]
-        section = ".".join(dir_parts) if dir_parts else "root"
-
-        if section not in fs_config:
-            print(f"cat: {filepath}: No such file or directory")
-            return
-
-        files = fs_config[section]["files"]
-        content_data = fs_config[section].get("content", {})
-
-        if filename not in files:
-            print(f"cat: {filepath}: No such file or directory")
-            return
-
-        if filename in content_data and content_data[filename]:
-            try:
-                import base64
-                decoded_content = base64.b64decode(content_data[filename])
-                try:
-                    print(decoded_content.decode("utf-8"))
-                except UnicodeDecodeError:
-                    print(f"Binary file (size: {len(decoded_content)} bytes)")
-                    print(f"Base64: {content_data[filename]}")
-            except Exception as e:
-                print(f"cat: error reading {filepath}: {e}")
-        else:
-            print(f"cat: {filepath}: file has no content")
 
     def cmd_find(self, args_input):
         if not args_input:
@@ -226,3 +203,95 @@ class Shell:
                 print(f"cat: error reading {filepath}: {e}")
         else:
             print(f"cat: {filepath}: file has no content")
+
+    def cmd_cp(self, args_input):
+        if len(args_input) < 2:
+            print("cp: missing file operand")
+            print("Usage: cp SOURCE DEST")
+            return
+
+        source_path = args_input[0].strip()
+        dest_path = args_input[1].strip()
+
+        if source_path.startswith("/"):
+            src_parts = ["root"] + [p for p in source_path.strip("/").split("/") if p]
+        else:
+            current_path = self.path_now[:-1].split("/")
+            current_path[0] = "root"
+            src_parts = current_path + [p for p in source_path.split("/") if p]
+
+        if dest_path.startswith("/"):
+            dst_parts = ["root"] + [p for p in dest_path.strip("/").split("/") if p]
+        else:
+            current_path = self.path_now[:-1].split("/")
+            current_path[0] = "root"
+            dst_parts = current_path + [p for p in dest_path.split("/") if p]
+
+        if not file_exists(src_parts):
+            print(f"cp: cannot stat '{source_path}': No such file or directory")
+            return
+
+        dst_dir_parts = dst_parts[:-1]
+        if dst_dir_parts and not dir_exists(dst_dir_parts):
+            print(f"cp: cannot create regular file '{dest_path}': No such file or directory")
+            return
+
+        if src_parts == dst_parts:
+            print(f"cp: '{source_path}' and '{dest_path}' are the same file")
+            return
+
+        if file_exists(dst_parts):
+            response = input(f"cp: overwrite '{dest_path}'? (y/n) ")
+            if response.lower() not in ['y', 'yes']:
+                return
+
+        if copy_file(src_parts, dst_parts):
+            save_fs_to_csv(self.phys_path)
+        else:
+            print(f"cp: error copying '{source_path}' to '{dest_path}'")
+
+    def cmd_mv(self, args_input):
+        if len(args_input) < 2:
+            print("mv: missing file operand")
+            print("Usage: mv SOURCE DEST")
+            return
+
+        source_path = args_input[0].strip()
+        dest_path = args_input[1].strip()
+
+        if source_path.startswith("/"):
+            src_parts = ["root"] + [p for p in source_path.strip("/").split("/") if p]
+        else:
+            current_path = self.path_now[:-1].split("/")
+            current_path[0] = "root"
+            src_parts = current_path + [p for p in source_path.split("/") if p]
+
+        if dest_path.startswith("/"):
+            dst_parts = ["root"] + [p for p in dest_path.strip("/").split("/") if p]
+        else:
+            current_path = self.path_now[:-1].split("/")
+            current_path[0] = "root"
+            dst_parts = current_path + [p for p in dest_path.split("/") if p]
+
+        if not file_exists(src_parts):
+            print(f"mv: cannot stat '{source_path}': No such file or directory")
+            return
+
+        dst_dir_parts = dst_parts[:-1]
+        if dst_dir_parts and not dir_exists(dst_dir_parts):
+            print(f"mv: cannot move '{source_path}' to '{dest_path}': No such file or directory")
+            return
+
+        if src_parts == dst_parts:
+            print(f"mv: '{source_path}' and '{dest_path}' are the same file")
+            return
+
+        if file_exists(dst_parts):
+            response = input(f"mv: overwrite '{dest_path}'? (y/n) ")
+            if response.lower() not in ['y', 'yes']:
+                return
+
+        if move_file(src_parts, dst_parts):
+            save_fs_to_csv(self.phys_path)
+        else:
+            print(f"mv: error moving '{source_path}' to '{dest_path}'")
