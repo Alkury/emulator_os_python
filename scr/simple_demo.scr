@@ -1,0 +1,48 @@
+# Простая демонстрация всех команд
+# Тестирование из корневой директории
+
+# Базовые команды
+start
+phys
+vfs_info
+
+# Навигация
+ls
+cd home
+ls
+cd ..
+ls
+
+tac hosts.txt
+tac home/notes.txt
+
+cp hosts.txt hosts_backup.txt
+ls
+cp hosts.txt home/hosts_copy.txt
+ls home
+
+mv hosts_backup.txt backup_hosts.txt
+ls
+mv backup_hosts.txt etc/backup_hosts.txt
+ls
+ls etc
+
+
+cal
+
+find hosts.txt
+
+tac nonexistent.txt
+cp nonexistent.txt copy.txt
+mv nonexistent.txt etc/file.txt
+cp hosts.txt hosts.txt
+
+ls /home
+cp /etc/config.ini /home/config_backup.ini
+ls /home
+mv /home/config_backup.ini /etc/config_backup.ini
+ls /etc
+
+ls
+ls home
+ls etc

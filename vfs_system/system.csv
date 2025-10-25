@@ -1,6 +1,6 @@
 section,dirs,files,content
-root,"home,etc","hosts.txt,passwd.txt","MTI3LjAuMC4xCWxvY2FsaG9zdA==,cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4vYmFzaA=="
-root.home,"user1,user2","notes.txt,","VGhpcyBpcyBhIG5vdGVzIGZpbGU=,"
+root,"home,etc",hosts.txt,MTI3LjAuMC4xCWxvY2FsaG9zdA==
+root.home,"user1,user2","notes.txt,hosts_copy.txt,secret.txt,hosts_in_home.txt","VGhpcyBpcyBhIG5vdGVzIGZpbGU=,MTI3LjAuMC4xCWxvY2FsaG9zdA==,cm9vdDp4OjA6MDpyb290Oi9yb290Oi9iaW4vYmFzaA==,MTI3LjAuMC4xCWxvY2FsaG9zdA=="
 root.home.user1,docs,,
 root.home.user1.docs,,"file1.txt,file2.txt","SGVsbG8gZnJvbSBmaWxlMQ==,SGVsbG8gZnJvbSBmaWxlMg=="
-root.etc,,"config.ini,sys.conf","W2NvbmZpZ10Ka2V5PXZhbHVl,c3lzdGVtIGNvbmZpZ3VyYXRpb24="
+root.etc,,"config.ini,sys.conf,backup.txt,config_backup.ini,backup_hosts.txt","W2NvbmZpZ10Ka2V5PXZhbHVl,c3lzdGVtIGNvbmZpZ3VyYXRpb24=,MTI3LjAuMC4xCWxvY2FsaG9zdA==,W2NvbmZpZ10Ka2V5PXZhbHVl,MTI3LjAuMC4xCWxvY2FsaG9zdA=="
